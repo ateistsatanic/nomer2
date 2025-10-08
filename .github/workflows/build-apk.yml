@@ -13,35 +13,49 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+    - name: Fix buildozer.spec
+      run: |
+        cat > buildozer.spec << EOF
+[app]
+title = Autotyper
+package.name = autotyper
+package.domain = org.example
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas,ttf,json
+version = 0.1
+requirements = python3,kivy,requests
+
+[buildozer]
+log_level = 2
+
+[android]
+api = 33
+minapi = 21
+ndk = 25b
+
+[android:meta-data]
+android.app.uses_cleartext_traffic = true
+EOF
 
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          git \
-          zip \
-          unzip \
-          openjdk-11-jdk \
           python3-pip \
-          autoconf \
-          libtool \
-          pkg-config \
-          zlib1g-dev \
-          libncurses5-dev \
-          libncursesw5-dev \
-          libtinfo5 \
-          cmake \
-          libffi-dev \
-          libssl-dev
+          zip \
+          openjdk-11-jdk \
+          wget \
+          unzip
 
     - name: Install Buildozer
       run: |
-        pip3 install --upgrade pip
-        pip3 install buildozer cython virtualenv
+        pip3 install buildozer
+
+    - name: Accept Android licenses
+      run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        yes | buildozer android licenses
 
     - name: Build APK
       run: |
@@ -52,4 +66,3 @@ jobs:
       with:
         name: autotyper-apk
         path: bin/*.apk
-        retention-days: 30
