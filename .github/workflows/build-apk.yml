@@ -1,0 +1,46 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  release:
+    types: [ created ]
+  workflow_dispatch:  # Позволяет запускать вручную
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Build APK with Buildozer
+      uses: artem-sheremet/buildozer-action@v2.0.1
+      with:
+        work-dir: ./
+        buildozer-version: stable
+        target: android debug
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: autotyper-apk
+        path: ./*.apk
+        retention-days: 30
+
+    - name: Upload to GitHub Releases
+      if: github.event_name == 'release'
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./*.apk
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true
