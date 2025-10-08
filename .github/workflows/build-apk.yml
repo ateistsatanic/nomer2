@@ -13,48 +13,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install system dependencies
+    - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          python3-pip \
-          python3-dev \
-          python3-venv \
-          zip \
-          openjdk-11-jdk \
-          git \
-          wget \
-          unzip
-
-    - name: Install Python packages
-      run: |
-        pip3 install --upgrade pip
+        sudo apt update
+        sudo apt install -y python3-pip python3-dev zip openjdk-11-jdk git
         pip3 install buildozer cython
-
-    - name: Setup Android SDK manually
-      run: |
-        mkdir -p ~/.android
-        touch ~/.android/repositories.cfg
         
-        # Скачиваем Android Command Line Tools
-        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-        mkdir -p android-sdk
-        unzip -q commandlinetools-linux-9477386_latest.zip -d android-sdk/cmdline-tools
-        mv android-sdk/cmdline-tools/cmdline-tools android-sdk/cmdline-tools/latest
-        
-        export ANDROID_SDK_ROOT=$PWD/android-sdk
-        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
-        
-        # Принимаем все лицензии автоматически
-        yes | sdkmanager --licenses
-        
-        # Устанавливаем конкретные версии
-        sdkmanager "platform-tools" "platforms;android-33" "build-tools;34.0.0"
-        
-        # Копируем SDK в папку Buildozer
-        mkdir -p ~/.buildozer/android/platform
-        cp -r android-sdk ~/.buildozer/android/platform/android-sdk
-
     - name: Create buildozer.spec
       run: |
         cat > buildozer.spec << 'EOF'
@@ -64,23 +28,25 @@ package.name = autotyper
 package.domain = org.example
 source.dir = .
 version = 0.1
-requirements = python3,kivy,requests
-
-[buildozer]
-log_level = 2
+requirements = python3,kivy
 
 [android]
-api = 33
+api = 30
 minapi = 21
-android.sdk_path = /home/runner/.buildozer/android/platform/android-sdk
 EOF
 
+    - name: Setup Android licenses
+      run: |
+        mkdir -p ~/.android/licenses
+        echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > ~/.android/licenses/android-sdk-license
+        echo "84831b9409646a918e30573bab4c9c91346d8abd" > ~/.android/licenses/android-sdk-preview-license
+        
     - name: Build APK
       run: |
-        buildozer -v android debug
-
+        buildozer android debug
+        
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: autotyper-apk
+        name: app
         path: bin/*.apk
