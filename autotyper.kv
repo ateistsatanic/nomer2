@@ -1,0 +1,55 @@
+<LoginScreen>:
+    username: username_input
+    password: password_input
+    error_label: error_label
+    
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 0.2, 0.6, 0.8, 1
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        
+        TextInput:
+            id: username_input
+            size_hint: 0.8, 0.1
+            pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+            hint_text: 'Логин'
+            multiline: False
+        
+        TextInput:
+            id: password_input
+            size_hint: 0.8, 0.1
+            pos_hint: {'center_x': 0.5, 'center_y': 0.45}
+            hint_text: 'Пароль'
+            password: True
+            multiline: False
+        
+        Button:
+            text: 'Войти'
+            size_hint: 0.8, 0.1
+            pos_hint: {'center_x': 0.5, 'center_y': 0.3}
+            on_press: root.check_credentials(self)
+        
+        Label:
+            id: error_label
+            text: ''
+            size_hint: 0.8, 0.1
+            pos_hint: {'center_x': 0.5, 'center_y': 0.15}
+            color: 1, 0, 0, 1
+
+<MainScreen>:
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 0.3, 0.7, 0.3, 1
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        
+        Button:
+            text: 'Включить автотайпер'
+            size_hint: 0.8, 0.2
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            on_press: root.show_info(self)
