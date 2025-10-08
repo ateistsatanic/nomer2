@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     
     steps:
     - name: Checkout code
@@ -18,42 +18,36 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install system dependencies for Ubuntu 24.04
+    - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           git \
           zip \
           unzip \
-          openjdk-17-jdk \
+          openjdk-11-jdk \
           python3-pip \
           autoconf \
           libtool \
           pkg-config \
           zlib1g-dev \
-          libncurses-dev \
+          libncurses5-dev \
+          libncursesw5-dev \
+          libtinfo5 \
           cmake \
           libffi-dev \
-          libssl-dev \
-          python3-venv \
-          swig \
-          curl
+          libssl-dev
 
-    - name: Install Buildozer and dependencies
+    - name: Install Buildozer
       run: |
         pip3 install --upgrade pip
         pip3 install buildozer cython virtualenv
-
-    - name: Initialize Buildozer
-      run: |
-        buildozer init
 
     - name: Build APK
       run: |
         buildozer -v android debug
 
-    - name: Upload APK artifact
-      if: success()
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: autotyper-apk
