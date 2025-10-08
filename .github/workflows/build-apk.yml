@@ -13,25 +13,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Create buildozer.spec with specific build-tools
-      run: |
-        echo '[app]' > buildozer.spec
-        echo 'title = Autotyper' >> buildozer.spec
-        echo 'package.name = autotyper' >> buildozer.spec
-        echo 'package.domain = org.example' >> buildozer.spec
-        echo 'source.dir = .' >> buildozer.spec
-        echo 'version = 0.1' >> buildozer.spec
-        echo 'requirements = python3,kivy,requests' >> buildozer.spec
-        echo '' >> buildozer.spec
-        echo '[buildozer]' >> buildozer.spec
-        echo 'log_level = 2' >> buildozer.spec
-        echo '' >> buildozer.spec
-        echo '[android]' >> buildozer.spec
-        echo 'api = 33' >> buildozer.spec
-        echo 'minapi = 21' >> buildozer.spec
-        echo 'android.build_tools_version = 34.0.0' >> buildozer.spec
-
-    - name: Install dependencies
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -40,20 +22,60 @@ jobs:
           python3-venv \
           zip \
           openjdk-11-jdk \
-          git
+          git \
+          wget \
+          unzip \
+          curl
 
     - name: Install Python packages
       run: |
         pip3 install --upgrade pip
         pip3 install buildozer cython
 
-    - name: Setup Android licenses
+    - name: Setup Android SDK manually
       run: |
         mkdir -p ~/.android
         touch ~/.android/repositories.cfg
-        mkdir -p ~/.android/licenses
-        echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > ~/.android/licenses/android-sdk-license
-        echo "84831b9409646a918e30573bab4c9c91346d8abd" > ~/.android/licenses/android-sdk-preview-license
+        
+        # Скачиваем Android Command Line Tools
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+        mkdir -p android-sdk
+        unzip -q commandlinetools-linux-9477386_latest.zip -d android-sdk/cmdline-tools
+        mv android-sdk/cmdline-tools/cmdline-tools android-sdk/cmdline-tools/latest
+        
+        export ANDROID_SDK_ROOT=$PWD/android-sdk
+        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
+        
+        # Принимаем все лицензии автоматически
+        yes | sdkmanager --licenses
+        
+        # Устанавливаем конкретные версии
+        sdkmanager "platform-tools" "platforms;android-33" "build-tools;34.0.0" "cmdline-tools;latest"
+        
+        # Копируем SDK в папку Buildozer
+        mkdir -p ~/.buildozer/android/platform
+        cp -r android-sdk ~/.buildozer/android/platform/android-sdk
+
+    - name: Create buildozer.spec
+      run: |
+        cat > buildozer.spec << 'EOF'
+[app]
+title = Autotyper
+package.name = autotyper
+package.domain = org.example
+source.dir = .
+version = 0.1
+requirements = python3,kivy,requests
+
+[buildozer]
+log_level = 2
+
+[android]
+api = 33
+minapi = 21
+# Указываем использовать уже установленный SDK
+android.sdk_path = %(home)s/.buildozer/android/platform/android-sdk
+EOF
 
     - name: Build APK
       run: |
