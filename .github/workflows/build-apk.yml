@@ -13,9 +13,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Fix buildozer.spec
+    - name: Create clean buildozer.spec
       run: |
-        cat > buildozer.spec << EOF
+        cat > buildozer.spec << 'EOF'
 [app]
 title = Autotyper
 package.name = autotyper
@@ -31,7 +31,6 @@ log_level = 2
 [android]
 api = 33
 minapi = 21
-ndk = 25b
 
 [android:meta-data]
 android.app.uses_cleartext_traffic = true
@@ -40,12 +39,7 @@ EOF
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          python3-pip \
-          zip \
-          openjdk-11-jdk \
-          wget \
-          unzip
+        sudo apt-get install -y python3-pip zip openjdk-11-jdk
 
     - name: Install Buildozer
       run: |
