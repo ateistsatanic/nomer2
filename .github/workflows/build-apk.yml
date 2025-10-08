@@ -35,39 +35,22 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
           python3-pip \
+          python3-venv \
+          python3-dev \
           zip \
           openjdk-11-jdk \
-          wget \
-          unzip
+          git \
+          build-essential
 
-    - name: Install Buildozer
+    - name: Install Python packages
       run: |
-        pip3 install buildozer
-
-    - name: Setup Android SDK
-      run: |
-        mkdir -p ~/.android
-        touch ~/.android/repositories.cfg
-        
-        # Скачиваем и распаковываем Android SDK
-        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-        mkdir -p android-sdk
-        unzip -q commandlinetools-linux-9477386_latest.zip -d android-sdk/cmdline-tools
-        
-        # Переименовываем папку правильно
-        mv android-sdk/cmdline-tools/cmdline-tools android-sdk/cmdline-tools/latest
-        
-        export ANDROID_SDK_ROOT=$PWD/android-sdk
-        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
-        
-        # Принимаем лицензии
-        yes | sdkmanager --licenses
-        
-        # Устанавливаем необходимые пакеты
-        sdkmanager "platform-tools" "platforms;android-33" "build-tools;34.0.0"
+        pip3 install --upgrade pip
+        pip3 install buildozer cython virtualenv
 
     - name: Build APK
       run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
         buildozer -v android debug
 
     - name: Upload APK
