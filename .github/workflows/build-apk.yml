@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -13,28 +13,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Create clean buildozer.spec
+    - name: Create buildozer.spec
       run: |
-        cat > buildozer.spec << 'EOF'
-[app]
-title = Autotyper
-package.name = autotyper
-package.domain = org.example
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,ttf,json
-version = 0.1
-requirements = python3,kivy,requests
-
-[buildozer]
-log_level = 2
-
-[android]
-api = 33
-minapi = 21
-
-[android:meta-data]
-android.app.uses_cleartext_traffic = true
-EOF
+        echo '[app]' > buildozer.spec
+        echo 'title = Autotyper' >> buildozer.spec
+        echo 'package.name = autotyper' >> buildozer.spec
+        echo 'package.domain = org.example' >> buildozer.spec
+        echo 'source.dir = .' >> buildozer.spec
+        echo 'version = 0.1' >> buildozer.spec
+        echo 'requirements = python3,kivy,requests' >> buildozer.spec
+        echo '' >> buildozer.spec
+        echo '[buildozer]' >> buildozer.spec
+        echo 'log_level = 2' >> buildozer.spec
+        echo '' >> buildozer.spec
+        echo '[android]' >> buildozer.spec
+        echo 'api = 33' >> buildozer.spec
+        echo 'minapi = 21' >> buildozer.spec
 
     - name: Install dependencies
       run: |
@@ -53,7 +47,7 @@ EOF
 
     - name: Build APK
       run: |
-        buildozer -v android debug
+        buildozer android debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
