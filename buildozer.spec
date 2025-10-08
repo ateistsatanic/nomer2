@@ -20,7 +20,3 @@ permissions = INTERNET
 
 [android:meta-data]
 android.app.uses_cleartext_traffic = true
-
-[app]
-orientation = portrait
-fullscreen = 0
