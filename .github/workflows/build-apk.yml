@@ -6,7 +6,7 @@ on:
   pull_request:
   release:
     types: [ created ]
-  workflow_dispatch:  # Позволяет запускать вручную
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,26 +21,55 @@ jobs:
       with:
         python-version: '3.9'
 
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          git \
+          zip \
+          unzip \
+          openjdk-17-jdk \
+          python3-pip \
+          autoconf \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          libncurses5-dev \
+          libncursesw5-dev \
+          libtinfo5 \
+          cmake \
+          libffi-dev \
+          libssl-dev \
+          python3-venv
+
+    - name: Install Buildozer
+      run: |
+        pip3 install --upgrade pip
+        pip3 install buildozer cython virtualenv
+
     - name: Build APK with Buildozer
-      uses: artem-sheremet/buildozer-action@v2.0.1
-      with:
-        work-dir: ./
-        buildozer-version: stable
-        target: android debug
+      run: |
+        buildozer init
+        buildozer -v android debug
+
+    - name: List build artifacts
+      run: |
+        ls -la bin/
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: autotyper-apk
-        path: ./*.apk
+        path: bin/*.apk
         retention-days: 30
 
     - name: Upload to GitHub Releases
       if: github.event_name == 'release'
-      uses: svenstaro/upload-release-action@v2
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ./*.apk
-        tag: ${{ github.ref }}
-        overwrite: true
-        file_glob: true
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: bin/*.apk
+        asset_name: autotyper-${{ github.event.release.tag_name }}.apk
+        asset_content_type: application/vnd.android.package-archive
