@@ -3,9 +3,6 @@ name: Build Android APK
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-  release:
-    types: [ created ]
   workflow_dispatch:
 
 jobs:
@@ -21,7 +18,7 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install system dependencies
+    - name: Install system dependencies for Ubuntu 24.04
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -34,42 +31,31 @@ jobs:
           libtool \
           pkg-config \
           zlib1g-dev \
-          libncurses5-dev \
-          libncursesw5-dev \
-          libtinfo5 \
+          libncurses-dev \
           cmake \
           libffi-dev \
           libssl-dev \
-          python3-venv
+          python3-venv \
+          swig \
+          curl
 
-    - name: Install Buildozer
+    - name: Install Buildozer and dependencies
       run: |
         pip3 install --upgrade pip
         pip3 install buildozer cython virtualenv
 
-    - name: Build APK with Buildozer
+    - name: Initialize Buildozer
       run: |
         buildozer init
+
+    - name: Build APK
+      run: |
         buildozer -v android debug
 
-    - name: List build artifacts
-      run: |
-        ls -la bin/
-
     - name: Upload APK artifact
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: autotyper-apk
         path: bin/*.apk
         retention-days: 30
-
-    - name: Upload to GitHub Releases
-      if: github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: bin/*.apk
-        asset_name: autotyper-${{ github.event.release.tag_name }}.apk
-        asset_content_type: application/vnd.android.package-archive
