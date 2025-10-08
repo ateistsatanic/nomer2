@@ -44,26 +44,27 @@ jobs:
       run: |
         pip3 install buildozer
 
-    - name: Setup Android SDK and accept licenses
+    - name: Setup Android SDK
       run: |
         mkdir -p ~/.android
         touch ~/.android/repositories.cfg
         
-        # Устанавливаем Android SDK Command Line Tools
+        # Скачиваем и распаковываем Android SDK
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
         mkdir -p android-sdk
-        unzip -q commandlinetools-linux-9477386_latest.zip -d android-sdk
-        mkdir -p android-sdk/cmdline-tools/latest
-        mv android-sdk/cmdline-tools/* android-sdk/cmdline-tools/latest/
+        unzip -q commandlinetools-linux-9477386_latest.zip -d android-sdk/cmdline-tools
+        
+        # Переименовываем папку правильно
+        mv android-sdk/cmdline-tools/cmdline-tools android-sdk/cmdline-tools/latest
         
         export ANDROID_SDK_ROOT=$PWD/android-sdk
         export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
         
         # Принимаем лицензии
-        yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+        yes | sdkmanager --licenses
         
         # Устанавливаем необходимые пакеты
-        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;34.0.0"
+        sdkmanager "platform-tools" "platforms;android-33" "build-tools;34.0.0"
 
     - name: Build APK
       run: |
