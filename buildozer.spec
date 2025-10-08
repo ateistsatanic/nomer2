@@ -3,19 +3,24 @@ title = Autotyper
 package.name = autotyper
 package.domain = org.example
 
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas,ttf,json
+
+version = 0.1
+requirements = python3,kivy,requests
+
 [buildozer]
 log_level = 2
 
-[app]
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
+[android]
+api = 33
+minapi = 21
+ndk = 25b
+permissions = INTERNET
+
+[android:meta-data]
+android.app.uses_cleartext_traffic = true
 
 [app]
-requirements = python3,kivy,requests,android
-
-[app]
-permissions = INTERNET, SYSTEM_ALERT_WINDOW
-
-[app]
-android.api = 33
-android.minapi = 21
+orientation = portrait
+fullscreen = 0
