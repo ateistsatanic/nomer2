@@ -1,49 +1,32 @@
-name: Build APK
-on: [push]
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install tools
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y python3-pip python3-dev zip openjdk-11-jdk git wget unzip
           pip3 install buildozer cython
-          
-      - name: Force accept all Android licenses
+
+      - name: Setup Android licenses
         run: |
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
           mkdir -p ~/.android/licenses
           echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > ~/.android/licenses/android-sdk-license
           echo "84831b9409646a918e30573bab4c9c91346d8abd" > ~/.android/licenses/android-sdk-preview-license
-          echo "d975f751698a77b662f1254ddbeed3901e976f5a" > ~/.android/licenses/intel-android-extra-license
-          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> ~/.android/licenses/android-sdk-license
-          
-      - name: Create buildozer.spec with specific versions
-        run: |
-          cat > buildozer.spec << 'EOF'
-[app]
-title = Autotyper
-package.name = autotyper
-package.domain = org.example
-source.dir = .
-version = 0.1
-requirements = python3,kivy
 
-[android]
-api = 31
-minapi = 21
-android.accept_sdk_license = True
-EOF
-
-      - name: Build with retry
+      - name: Build APK
         run: |
-          buildozer android clean
-          buildozer android debug || buildozer android debug
-          
+          buildozer android debug
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
